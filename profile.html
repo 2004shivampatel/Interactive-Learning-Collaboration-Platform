@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>User Profile</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        body.dark {
+            background: #121212;
+            color: white;
+        }
+
+        .sidebar {
+            position: fixed;
+            width: 220px;
+            float: left;
+            background: #333;
+            color: white;
+            height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            transition: background 0.3s;
+        }
+
+        .sidebar.dark {
+            background: #1e1e1e;
+        }
+
+        .sidebar a,
+        .sidebar button {
+            display: block;
+            color: white;
+            margin: 10px 0;
+            text-decoration: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 5px;
+        }
+
+        .sidebar a:hover,
+        .sidebar button:hover {
+            background: #555;
+        }
+
+        .main {
+            margin-left: 240px;
+            padding: 20px;
+        }
+
+        .profile-card {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .profile-card.dark {
+            background: #1e1e1e;
+            color: white;
+        }
+
+        h2 {
+            margin-top: 0;
+        }
+
+        input,
+        textarea,
+        button {
+            width: 100%;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+
+        button {
+            background: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        img.avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 10px;
+        }
+
+        .activity-card,
+        .badge-card {
+            background: #f0f0f0;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+
+        .activity-card.dark,
+        .badge-card.dark {
+            background: #2c2c2c;
+            color: white;
+        }
+
+        .progress-bar {
+            width: 100%;
+            background: #ccc;
+            border-radius: 5px;
+            margin: 5px 0;
+        }
+
+        .progress {
+            height: 10px;
+            background: #007BFF;
+            border-radius: 5px;
+        }
+
+        .social-links a {
+            margin-right: 10px;
+            text-decoration: none;
+            color: #007BFF;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="sidebar" id="sidebar">
+        <h2>Menu</h2>
+        <ul>
+            <li><a href="dashboard.html">Dashboard</a></li>
+            <li><a href="content.html">Content</a></li>
+            <li><a href="discussion.html">Discussion</a></li>
+            <li><a href="groups.html">Groups</a></li>
+            <li><a href="profile.html">Profile</a></li>
+            <li><button onclick="logout()">Logout</button></li>
+            <li><button onclick="toggleTheme()">Toggle Dark/Light Mode</button></li>
+        </ul>
+    </div>
+
+    <div class="main">
+        <div class="profile-card" id="profileCard">
+            <h2>Profile Information</h2>
+            <img src="" id="avatar" class="avatar">
+            <input type="file" id="avatarUpload">
+            <p><strong>Name:</strong> <input type="text" id="profileName"></p>
+            <p><strong>Email:</strong> <input type="email" id="profileEmail"></p>
+            <p><strong>Role:</strong> <span id="profileRole"></span></p>
+            <p><strong>Points:</strong> <span id="profilePoints"></span></p>
+            <p><strong>Badges:</strong> <span id="profileBadges"></span></p>
+            <button onclick="saveProfile()">Save Changes</button>
+
+            <h3>Statistics</h3>
+            <div class="progress-bar">
+                <div class="progress" id="pointsProgress"></div>
+            </div>
+            <p>Content Viewed: <span id="contentViewed"></span></p>
+            <p>Discussions Posted: <span id="discussionsPosted"></span></p>
+            <p>Groups Joined: <span id="groupsJoined"></span></p>
+
+            <h3>Activity Feed</h3>
+            <div id="activityFeed"></div>
+
+            <h3>Achievements & Badges</h3>
+            <div id="badgeList"></div>
+
+            <h3>Social Links</h3>
+            <div class="social-links">
+                <a href="#" target="_blank">LinkedIn</a>
+                <a href="#" target="_blank">GitHub</a>
+                <a href="mailto:user@example.com">Email</a>
+            </div>
+
+            <h3>Profile QR Code</h3>
+            <div id="qrCode" style="background:#ccc;width:100px;height:100px;text-align:center;line-height:100px;">QR
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let user = JSON.parse(localStorage.getItem("currentUser"));
+        if (!user) window.location.href = "index.html";
+
+        // Load profile info
+        const avatarEl = document.getElementById("avatar");
+        const nameEl = document.getElementById("profileName");
+        const emailEl = document.getElementById("profileEmail");
+        const roleEl = document.getElementById("profileRole");
+        const pointsEl = document.getElementById("profilePoints");
+        const badgesEl = document.getElementById("profileBadges");
+        const pointsProgress = document.getElementById("pointsProgress");
+        const contentViewed = document.getElementById("contentViewed");
+        const discussionsPosted = document.getElementById("discussionsPosted");
+        const groupsJoined = document.getElementById("groupsJoined");
+        const activityFeed = document.getElementById("activityFeed");
+        const badgeList = document.getElementById("badgeList");
+
+        let themeDark = false;
+
+        function loadProfile() {
+            avatarEl.src = user.avatar || "https://via.placeholder.com/100";
+            nameEl.value = user.name;
+            emailEl.value = user.email;
+            roleEl.innerText = user.role;
+            pointsEl.innerText = user.points;
+            badgesEl.innerText = user.badges.join(", ") || "None";
+
+            // Progress bar
+            pointsProgress.style.width = Math.min(user.points, 100) + "%";
+
+            // Activity Feed (simulated)
+            const activities = JSON.parse(localStorage.getItem("activity")) || [];
+            activityFeed.innerHTML = "";
+            activities.forEach(a => {
+                const div = document.createElement("div");
+                div.className = "activity-card";
+                if (themeDark) div.classList.add("dark");
+                div.innerText = a;
+                activityFeed.appendChild(div);
+            });
+
+            // Badges display
+            badgeList.innerHTML = "";
+            (user.badges || []).forEach(b => {
+                const div = document.createElement("div");
+                div.className = "badge-card";
+                if (themeDark) div.classList.add("dark");
+                div.innerText = b;
+                badgeList.appendChild(div);
+            });
+
+            // Stats
+            const contents = JSON.parse(localStorage.getItem("viewed")) || [];
+            const discussions = JSON.parse(localStorage.getItem("discussions")) || [];
+            const groups = JSON.parse(localStorage.getItem("groups")) || [];
+            contentViewed.innerText = contents.length;
+            discussionsPosted.innerText = discussions.filter(d => d.user === user.name).length;
+            groupsJoined.innerText = groups.filter(g => g.members.includes(user.name)).length;
+        }
+
+        // Avatar upload
+        document.getElementById("avatarUpload").addEventListener("change", function (e) {
+            const reader = new FileReader();
+            reader.onload = function () {
+                user.avatar = reader.result;
+                avatarEl.src = user.avatar;
+            }
+            reader.readAsDataURL(e.target.files[0]);
+        });
+
+        // Save profile
+        function saveProfile() {
+            user.name = nameEl.value;
+            user.email = emailEl.value;
+            localStorage.setItem("currentUser", JSON.stringify(user));
+            alert("Profile updated!");
+            loadProfile();
+        }
+
+        // Logout
+        function logout() {
+            localStorage.removeItem("currentUser");
+            window.location.href = "index.html";
+        }
+
+        // Dark/light mode toggle
+        function toggleTheme() {
+            themeDark = !themeDark;
+            document.body.classList.toggle("dark");
+            document.getElementById("sidebar").classList.toggle("dark");
+            document.getElementById("profileCard").classList.toggle("dark");
+            loadProfile();
+        }
+
+        loadProfile();
+    </script>
+</body>
+
+</html>
